@@ -73,7 +73,8 @@ printUsage = do
       "Usage: %s [OPTION]\n\
       \Options:\n\
       \  --help        Print this message\n\
-      \  --recompile   Recompile the source code at %s (Broken)\n\
+      \  --recompile   Recompile the source code at %s\n\
+      \  --restart     Restart the running instance of keenwm (Broken)\n\
       \  --info        Print info about the binary"
       self
       dir
