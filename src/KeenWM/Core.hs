@@ -43,6 +43,7 @@ import System.Process
 import Text.Printf (printf)
 import qualified XMonad as X
 import XMonad.Core (installSignalHandlers, uninstallSignalHandlers)
+import XMonad.Hooks.EwmhDesktops (ewmh, ewmhFullscreen)
 import XMonad.Hooks.ManageDocks (docks, manageDocks)
 import XMonad.Hooks.SetWMName (setWMName)
 import qualified XMonad.Operations (restart)
@@ -80,7 +81,7 @@ data KConfig a =
 -- | Translate an @KConfig@ instance into @XConfig@.
 kToX :: KConfig a -> X.XConfig a
 kToX kc@KConfig {colorScheme = cs} =
-  docks $ X.def
+  ewmhFullscreen . ewmh . docks $ X.def
     { X.normalBorderColor = base02 cs
     , X.focusedBorderColor = base0A cs
     , X.terminal = command $ terminal kc

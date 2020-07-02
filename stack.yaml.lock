@@ -5,6 +5,17 @@
 
 packages:
 - completed:
+    name: xmonad-contrib
+    version: '0.16'
+    git: https://github.com/xmonad/xmonad-contrib.git
+    pantry-tree:
+      size: 20742
+      sha256: c3c87e4c875a9222837990e0cb48fffdd3a8b4c0290c90a5c882207fcbce7217
+    commit: 3dc49721b69f5c69c5d5e1ca21083892de72715d
+  original:
+    git: https://github.com/xmonad/xmonad-contrib.git
+    commit: 3dc49721b69f5c69c5d5e1ca21083892de72715d
+- completed:
     name: xmobar
     version: 0.35.1
     git: https://github.com/jaor/xmobar.git
