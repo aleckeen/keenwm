@@ -8,9 +8,9 @@ import qualified Data.Map as Map
 import qualified Graphics.X11.Types as X11
 import KeenWM.Core (Keyboard, Mouse, recompileRestart, run)
 import qualified KeenWM.Core as K (KConfig(..))
-import KeenWM.Util.ColorScheme (snazzyCS)
+import KeenWM.Util.ColorScheme (ColorScheme, snazzyCS)
 import KeenWM.Util.Dmenu (dmenuDefaults', dmenuRun)
-import KeenWM.Util.Font (fontDefaults)
+import KeenWM.Util.Font (Font, fontDefaults)
 import KeenWM.Util.Terminal (Terminal(..), alacritty, printToTerminal)
 import System.Exit (exitSuccess)
 import System.Process (shell)
@@ -21,10 +21,10 @@ kconfigDefaults ::
      K.KConfig (X.Choose X.Tall (X.Choose (X.Mirror X.Tall) X.Full))
 kconfigDefaults =
   K.KConfig
-    { K.colorScheme = snazzyCS
-    , K.dmenuConfig = dmenuDefaults' fontDefaults snazzyCS
-    , K.font = fontDefaults
-    , K.terminal = alacritty
+    { K.colorScheme = colorScheme
+    , K.dmenuConfig = dmenuDefaults' font colorScheme
+    , K.font = font
+    , K.terminal = terminal
     , K.workspaces = map show [1 .. 9 :: Int]
     , K.borderWidth = 1
     , K.focusFollowsMouse = True
@@ -38,6 +38,15 @@ kconfigDefaults =
     , K.logHook = return ()
     , K.startupHook = return ()
     }
+
+colorScheme :: ColorScheme
+colorScheme = snazzyCS
+
+font :: Font
+font = fontDefaults
+
+terminal :: Terminal
+terminal = alacritty
 
 keyboard :: Keyboard a
 keyboard K.KConfig { K.modMask = modm
