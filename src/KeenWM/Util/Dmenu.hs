@@ -14,7 +14,7 @@ import Data.Maybe (fromJust, isJust)
 import KeenWM.Util.ColorScheme (ColorScheme(..))
 import KeenWM.Util.Font (Font, getXft)
 import System.Exit (ExitCode(..))
-import System.IO (hClose, hFlush, hGetContents, hGetLine, hPutStr)
+import System.IO (hClose, hFlush, hGetLine, hPutStr)
 import System.Process
   ( StdStream(..)
   , createProcess

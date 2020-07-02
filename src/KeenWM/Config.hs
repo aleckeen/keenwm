@@ -6,16 +6,23 @@ import Control.Monad.IO.Class (MonadIO(liftIO))
 import Data.Bits ((.|.))
 import qualified Data.Map as Map
 import qualified Graphics.X11.Types as X11
-import KeenWM.Core (Keyboard, Mouse, recompileRestart, run)
+import KeenWM.Core (Keyboard, Mouse, getScreens, recompileRestart, run)
 import qualified KeenWM.Core as K (KConfig(..))
 import KeenWM.Util.ColorScheme (ColorScheme, snazzyCS)
 import KeenWM.Util.Dmenu (dmenuDefaults', dmenuRun)
 import KeenWM.Util.Font (Font, fontDefaults)
-import KeenWM.Util.Terminal (Terminal(..), alacritty, printToTerminal)
+import KeenWM.Util.Terminal (Terminal(..), alacritty)
+import KeenWM.Util.Xmobar
+  ( Xmobar(position, readWM, template)
+  , screen
+  , xmobarDefaults
+  )
 import System.Exit (exitSuccess)
 import System.Process (shell)
 import qualified XMonad as X
+import XMonad.Hooks.DynamicLog (PP, xmobarPP)
 import qualified XMonad.StackSet as W
+import Xmobar (XPosition(Top))
 
 kconfigDefaults ::
      K.KConfig (X.Choose X.Tall (X.Choose (X.Mirror X.Tall) X.Full))
@@ -25,6 +32,7 @@ kconfigDefaults =
     , K.dmenuConfig = dmenuDefaults' font colorScheme
     , K.font = font
     , K.terminal = terminal
+    , K.statusBars = statusBars
     , K.workspaces = map show [1 .. 9 :: Int]
     , K.borderWidth = 1
     , K.focusFollowsMouse = True
@@ -47,6 +55,14 @@ font = fontDefaults
 
 terminal :: Terminal
 terminal = alacritty
+
+statusBars :: X.X [Xmobar]
+statusBars =
+  map
+    (\s ->
+       xmobarDefaults
+         {readWM = Just s, position = screen s Top, template = "%WMReader%"}) <$>
+  getScreens
 
 keyboard :: Keyboard a
 keyboard K.KConfig { K.modMask = modm
@@ -75,3 +91,9 @@ mouse K.KConfig {K.modMask = modm} =
     , ( (modm, X11.button3)
       , \w -> X.focus w >> X.mouseResizeWindow w >> X.windows W.shiftMaster)
     ]
+
+normalPP :: PP
+normalPP = xmobarPP
+
+focusedPP :: PP
+focusedPP = normalPP

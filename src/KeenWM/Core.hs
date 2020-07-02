@@ -4,40 +4,40 @@ module KeenWM.Core
   , Mouse
   , kToX
   , recompile
+  , restart
   , recompileRestart
   , run
+  , getScreens
   , getConfigDir
   ) where
 
-import Control.Monad (when)
+import Control.Monad (void, when)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import qualified Data.Map as Map
-import Data.Semigroup (All)
+import Data.Monoid (All(All))
 import Debug.Trace (trace)
 import qualified Graphics.X11.Types as X11
+import Graphics.X11.Xinerama (getScreenInfo)
+import Graphics.X11.Xlib (closeDisplay, openDisplay, rrScreenChangeNotifyMask)
 import qualified Graphics.X11.Xlib.Cursor as X11
+import Graphics.X11.Xlib.Extras (Event(RRScreenChangeNotifyEvent))
+import Graphics.X11.Xrandr (xrrSelectInput)
+import KeenWM.Bar (barLog, barStartup, cleanupBars)
 import KeenWM.Util.ColorScheme (ColorScheme(..))
 import KeenWM.Util.Dmenu (Dmenu)
 import KeenWM.Util.Font (Font)
 import KeenWM.Util.Terminal (Terminal(..), printToTerminal)
-import System.Directory
-  ( XdgDirectory(..)
-  , createDirectoryIfMissing
-  , doesPathExist
-  , getXdgDirectory
-  )
+import KeenWM.Util.Xmobar (Xmobar)
+import System.Directory (XdgDirectory(..), doesPathExist, getXdgDirectory)
 import System.Environment (getProgName)
 import System.Environment.Blank (getEnv)
 import System.Exit (ExitCode(ExitSuccess))
-import System.FilePath ((</>))
-import System.IO (IOMode(..), hPutStrLn, withFile)
 import System.Process
   ( CreateProcess
   , createProcess
   , cwd
   , proc
   , readCreateProcessWithExitCode
-  , spawnProcess
   , waitForProcess
   )
 import Text.Printf (printf)
@@ -45,7 +45,7 @@ import qualified XMonad as X
 import XMonad.Core (installSignalHandlers, uninstallSignalHandlers)
 import XMonad.Hooks.ManageDocks (manageDocks)
 import XMonad.Hooks.SetWMName (setWMName)
-import XMonad.Operations (restart)
+import qualified XMonad.Operations (restart)
 import XMonad.Util.Cursor (setDefaultCursor)
 
 --------------------------------------------------------------------------------
@@ -62,6 +62,7 @@ data KConfig a =
     , dmenuConfig :: Dmenu
     , font :: Font
     , terminal :: Terminal
+    , statusBars :: X.X [Xmobar]
     , layoutHook :: a X.Window
     , manageHook :: X.ManageHook
     , handleEventHook :: X.Event -> X.X All
@@ -100,13 +101,27 @@ kToX kc@KConfig {colorScheme = cs} =
     manageHook' :: X.ManageHook
     manageHook' = manageDocks
     handleEventHook' :: X.Event -> X.X All
-    handleEventHook' = mempty
+    handleEventHook' = randrEvent
     logHook' :: X.X ()
-    logHook' = return ()
+    logHook' = barLog
     startupHook' :: X.X ()
     startupHook' = do
+      randrSetup
       setWMName "LG3D"
       setDefaultCursor X11.xC_left_ptr
+      statusBars kc >>= barStartup
+
+randrSetup :: X.X ()
+randrSetup = do
+  dpy <- X.asks X.display
+  root <- X.asks X.theRoot
+  liftIO $ xrrSelectInput dpy root rrScreenChangeNotifyMask
+
+randrEvent :: X.Event -> X.X All
+randrEvent e =
+  case e of
+    RRScreenChangeNotifyEvent {} -> restart >> return (All True)
+    _ -> return $ All True
 
 --------------------------------------------------------------------------------
 -- Recompilation
@@ -153,6 +168,11 @@ recompile term = do
         then return True
         else handleTerminal
 
+-- | Restart keenwm.
+restart :: X.X ()
+restart =
+  cleanupBars >> liftIO getProgName >>= (`XMonad.Operations.restart` True)
+
 -- | Recompiles the project using the @recompile@ function
 -- and restarts the instance of keenwm that it has been
 -- called from if recompilation process is successful.
@@ -160,20 +180,26 @@ recompile term = do
 -- the error message by the recompile function. This
 -- should be called by a keybinding.
 recompileRestart :: Terminal -> X.X ()
-recompileRestart t = do
-  status <- liftIO $ recompile (Just t)
-  when status $ do
-    prog <- liftIO getProgName
-    XMonad.Operations.restart prog True
+recompileRestart t = liftIO (recompile . Just $ t) >>= (`when` restart)
 
 --------------------------------------------------------------------------------
 -- General utilities
 --
 -- | Like @spawn@ from XMonad, but it takes a @CreateProcess@ instance.
 run :: MonadIO m => CreateProcess -> m ()
-run p = do
-  _ <- liftIO $ createProcess p
-  return ()
+run = void . liftIO . createProcess
+
+-- | Returns a list of screens.
+getScreens :: MonadIO m => m [X.ScreenId]
+getScreens =
+  liftIO $ do
+    screens <-
+      do dpy <- openDisplay ""
+         rects <- getScreenInfo dpy
+         closeDisplay dpy
+         return rects
+    let ids = zip [0 ..] screens
+    return $ map fst ids
 
 -- | Returns the path to the keenwm source directory. @KEENWM_CONFIG@
 -- environment variable is used to determine the path. If it does not

@@ -27,7 +27,7 @@ source-repository head
 
 library
   exposed-modules:
-      KeenWM
+      KeenWM.Bar
     , KeenWM.Config
     , KeenWM.Core
     , KeenWM.Main
@@ -35,6 +35,7 @@ library
     , KeenWM.Util.Dmenu
     , KeenWM.Util.Font
     , KeenWM.Util.Terminal
+    , KeenWM.Util.Xmobar
   other-modules:
       Paths_keenwm
   hs-source-dirs:
