@@ -40,14 +40,12 @@ packages:
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
 extra-deps:
-- netlink-1.1.1.0
 - git: https://github.com/jaor/xmobar.git
   commit: f0795239ddad9b58ef832b91efb43620a909f7a0
 
 # Override default flag values for local packages and extra-deps
 flags:
   xmobar:
-    all_extensions: true
     with_threaded: true
 
 # Extra package databases containing global packages
