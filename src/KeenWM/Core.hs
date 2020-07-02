@@ -92,10 +92,10 @@ kToX kc@KConfig {colorScheme = cs} =
     , X.keys = \_ -> keys kc kc
     , X.mouseBindings = \_ -> mouseBindings kc kc
     , X.layoutHook = layoutHook kc
-    , X.manageHook = manageHook'
-    , X.handleEventHook = handleEventHook'
-    , X.logHook = logHook'
-    , X.startupHook = startupHook'
+    , X.manageHook = manageHook' `mappend` manageHook kc
+    , X.handleEventHook = handleEventHook' `mappend` handleEventHook kc
+    , X.logHook = logHook' >> logHook kc
+    , X.startupHook = startupHook' >> startupHook kc
     }
   where
     manageHook' :: X.ManageHook
