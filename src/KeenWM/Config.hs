@@ -20,7 +20,6 @@ import KeenWM.Util.Xmobar
 import System.Exit (exitSuccess)
 import System.Process (shell)
 import qualified XMonad as X
-import XMonad.Hooks.DynamicLog (PP, xmobarPP)
 import qualified XMonad.StackSet as W
 import Xmobar (XPosition(Top))
 
@@ -91,9 +90,3 @@ mouse K.KConfig {K.modMask = modm} =
     , ( (modm, X11.button3)
       , \w -> X.focus w >> X.mouseResizeWindow w >> X.windows W.shiftMaster)
     ]
-
-normalPP :: PP
-normalPP = xmobarPP
-
-focusedPP :: PP
-focusedPP = normalPP
