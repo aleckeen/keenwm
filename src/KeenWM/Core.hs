@@ -81,7 +81,8 @@ data KConfig a =
 -- | Translate an @KConfig@ instance into @XConfig@.
 kToX :: KConfig a -> X.XConfig a
 kToX kc@KConfig {colorScheme = cs} =
-  ewmhFullscreen . ewmh . docks $ X.def
+  ewmhFullscreen . ewmh . docks $
+  X.def
     { X.normalBorderColor = base02 cs
     , X.focusedBorderColor = base0A cs
     , X.terminal = command $ terminal kc
