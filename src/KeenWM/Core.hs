@@ -7,6 +7,7 @@ module KeenWM.Core
   , restart
   , recompileRestart
   , run
+  , barForEachScreen
   , getScreens
   , getConfigDir
   ) where
@@ -27,7 +28,7 @@ import KeenWM.Util.ColorScheme (ColorScheme(..))
 import KeenWM.Util.Dmenu (Dmenu)
 import KeenWM.Util.Font (Font)
 import KeenWM.Util.Terminal (Terminal(..), printToTerminal)
-import KeenWM.Util.Xmobar (Xmobar)
+import KeenWM.Util.Xmobar (Xmobar(position, readWM), screen)
 import System.Directory (XdgDirectory(..), doesPathExist, getXdgDirectory)
 import System.Environment (getProgName)
 import System.Environment.Blank (getEnv)
@@ -190,6 +191,10 @@ recompileRestart t = liftIO (recompile . Just $ t) >>= (`when` restart)
 -- | Like @spawn@ from XMonad, but it takes a @CreateProcess@ instance.
 run :: MonadIO m => CreateProcess -> m ()
 run = void . liftIO . createProcess
+
+barForEachScreen :: Xmobar -> X.X [Xmobar]
+barForEachScreen c =
+  map (\s -> c {readWM = Just s, position = screen s c}) <$> getScreens
 
 -- | Returns a list of screens.
 getScreens :: MonadIO m => m [X.ScreenId]

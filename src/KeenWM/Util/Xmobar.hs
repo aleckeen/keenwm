@@ -127,5 +127,5 @@ xmobarDefaults =
     , verbose = False
     }
 
-screen :: ScreenId -> XPosition -> XPosition
-screen (S s) = OnScreen s
+screen :: ScreenId -> Xmobar -> XPosition
+screen (S s) c = OnScreen s $ position c

@@ -6,22 +6,17 @@ import Control.Monad.IO.Class (MonadIO(liftIO))
 import Data.Bits ((.|.))
 import qualified Data.Map as Map
 import qualified Graphics.X11.Types as X11
-import KeenWM.Core (Keyboard, Mouse, getScreens, recompileRestart, run)
+import KeenWM.Core (Keyboard, Mouse, barForEachScreen, recompileRestart, run)
 import qualified KeenWM.Core as K (KConfig(..))
 import KeenWM.Util.ColorScheme (ColorScheme, snazzyCS)
 import KeenWM.Util.Dmenu (dmenuDefaults', dmenuRun)
 import KeenWM.Util.Font (Font, fontDefaults)
 import KeenWM.Util.Terminal (Terminal(..), alacritty)
-import KeenWM.Util.Xmobar
-  ( Xmobar(position, readWM, template)
-  , screen
-  , xmobarDefaults
-  )
+import KeenWM.Util.Xmobar (Xmobar(template), xmobarDefaults)
 import System.Exit (exitSuccess)
 import System.Process (shell)
 import qualified XMonad as X
 import qualified XMonad.StackSet as W
-import Xmobar (XPosition(Top))
 
 kconfigDefaults ::
      K.KConfig (X.Choose X.Tall (X.Choose (X.Mirror X.Tall) X.Full))
@@ -56,12 +51,10 @@ terminal :: Terminal
 terminal = alacritty
 
 statusBars :: X.X [Xmobar]
-statusBars =
-  map
-    (\s ->
-       xmobarDefaults
-         {readWM = Just s, position = screen s Top, template = "%WMReader%"}) <$>
-  getScreens
+statusBars = barForEachScreen bar
+  where
+    bar :: Xmobar
+    bar = xmobarDefaults {template = "%WMReader%"}
 
 keyboard :: Keyboard a
 keyboard K.KConfig { K.modMask = modm
