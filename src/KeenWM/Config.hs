@@ -1,9 +1,13 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE TypeFamilies #-}
+
 module KeenWM.Config
-  ( kconfigDefaults
+  ( Default(..)
   ) where
 
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Data.Bits ((.|.))
+import Data.Default (Default)
 import qualified Data.Map as Map
 import qualified Graphics.X11.Types as X11
 import KeenWM.Core (Keyboard, Mouse, barForEachScreen, recompileRestart, run)
@@ -18,28 +22,28 @@ import System.Process (shell)
 import qualified XMonad as X
 import qualified XMonad.StackSet as W
 
-kconfigDefaults ::
-     K.KConfig (X.Choose X.Tall (X.Choose (X.Mirror X.Tall) X.Full))
-kconfigDefaults =
-  K.KConfig
-    { K.colorScheme = colorScheme
-    , K.dmenuConfig = dmenuDefaults' font colorScheme
-    , K.font = font
-    , K.terminal = terminal
-    , K.statusBars = statusBars
-    , K.workspaces = map show [1 .. 9 :: Int]
-    , K.borderWidth = 1
-    , K.focusFollowsMouse = True
-    , K.clickJustFocuses = True
-    , K.modMask = X11.mod4Mask
-    , K.keys = keyboard
-    , K.mouseBindings = mouse
-    , K.layoutHook = X.layoutHook X.def
-    , K.manageHook = X.manageHook X.def
-    , K.handleEventHook = mempty
-    , K.logHook = return ()
-    , K.startupHook = return ()
-    }
+instance (a ~ X.Choose X.Tall (X.Choose (X.Mirror X.Tall) X.Full)) =>
+         Default (K.KConfig a) where
+  def =
+    K.KConfig
+      { K.colorScheme = colorScheme
+      , K.dmenuConfig = dmenuDefaults' font colorScheme
+      , K.font = font
+      , K.terminal = terminal
+      , K.statusBars = statusBars
+      , K.workspaces = map show [1 .. 9 :: Int]
+      , K.borderWidth = 1
+      , K.focusFollowsMouse = True
+      , K.clickJustFocuses = True
+      , K.modMask = X11.mod4Mask
+      , K.keys = keyboard
+      , K.mouseBindings = mouse
+      , K.layoutHook = X.layoutHook X.def
+      , K.manageHook = X.manageHook X.def
+      , K.handleEventHook = mempty
+      , K.logHook = return ()
+      , K.startupHook = return ()
+      }
 
 colorScheme :: ColorScheme
 colorScheme = snazzyCS
