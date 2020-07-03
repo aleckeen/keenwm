@@ -35,10 +35,10 @@ version = "0.1"
 
 keenwm ::
      (X.LayoutClass l X.Window, Read (l X.Window))
-  => KConfig l
-  -> (X.XConfig l -> X.XConfig l)
+  => (X.XConfig l -> X.XConfig l)
+  -> KConfig l
   -> IO ()
-keenwm conf m = do
+keenwm m conf = do
   args <- getArgs
   case args of
     ["--help"] -> printUsage

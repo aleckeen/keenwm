@@ -4,4 +4,4 @@ import KeenWM.Main (keenwm)
 import KeenWM.Config (kconfigDefaults)
 
 main :: IO ()
-main = keenwm kconfigDefaults id
+main = keenwm id kconfigDefaults
