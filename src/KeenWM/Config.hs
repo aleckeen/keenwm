@@ -3,6 +3,8 @@
 
 module KeenWM.Config
   ( Default(..)
+  , keyboard
+  , mouse
   ) where
 
 import Control.Monad.IO.Class (MonadIO(liftIO))
