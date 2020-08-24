@@ -21,7 +21,6 @@ import System.Process
   , proc
   , readProcess
   , spawnCommand
-  , spawnProcess
   , std_in
   , std_out
   , waitForProcess

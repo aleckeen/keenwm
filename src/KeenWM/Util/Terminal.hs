@@ -5,7 +5,7 @@ module KeenWM.Util.Terminal
   ) where
 
 import Control.Monad.IO.Class (MonadIO(liftIO))
-import System.Directory (getTemporaryDirectory, removeFile)
+import System.Directory (getTemporaryDirectory)
 import System.FilePath ((</>))
 import System.Process (spawnProcess)
 import Text.Printf (printf)

@@ -49,6 +49,7 @@ extra-deps:
 flags:
   xmobar:
     with_threaded: true
+    with_xft: true
 
 # Extra package databases containing global packages
 # extra-package-dbs: []
