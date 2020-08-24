@@ -16,7 +16,6 @@ import Control.Monad (void, when)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import qualified Data.Map as Map
 import Data.Monoid (All(All))
-import Debug.Trace (trace)
 import qualified Graphics.X11.Types as X11
 import Graphics.X11.Xinerama (getScreenInfo)
 import Graphics.X11.Xlib (closeDisplay, openDisplay, rrScreenChangeNotifyMask)
@@ -145,7 +144,9 @@ recompile term = do
   res <-
     if exists
       then maybe compileStdOut compileTerminal term
-      else trace (printf "%s doesn't exist." configDir) return False
+      else do
+        putStrLn . printf "%s doesn't exist." $ configDir
+        return False
   installSignalHandlers
   return res
   where
@@ -158,18 +159,16 @@ recompile term = do
       (_, _, _, h) <- createProcess $ process configDir
       status <- waitForProcess h
       if status == ExitSuccess
-        then trace "KeenWM recompilation exited with success." return True
-        else trace "KeenWM recompilation exited with failure." return False
+        then putStrLn "KeenWM recompilation exited with success." >> return True
+        else putStrLn "KeenWM recompilation exited with failure." >>
+             return False
     compileTerminal :: Terminal -> IO Bool
     compileTerminal t = do
       configDir <- getConfigDir
       (status, _, err) <- readCreateProcessWithExitCode (process configDir) []
-      let handleTerminal = do
-            printToTerminal t err
-            return False
       if status == ExitSuccess
         then return True
-        else handleTerminal
+        else printToTerminal t err >> return False
 
 -- | Restart keenwm.
 restart :: X.X ()
