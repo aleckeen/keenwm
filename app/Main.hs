@@ -1,7 +1,9 @@
-module Main (main) where
+module Main
+  ( main
+  ) where
 
-import KeenWM.Main (keenwm)
 import KeenWM.Config (Default(..))
+import KeenWM.Main (keenwm)
 
 main :: IO ()
 main = keenwm id def
