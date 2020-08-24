@@ -24,14 +24,12 @@ import Graphics.X11.Xlib.Extras
   , setEventType
   )
 import KeenWM.Core (KConfig, getConfigDir, kToX, recompile)
+import Paths_keenwm (version)
 import System.Environment (getArgs, getProgName)
 import System.Exit (exitFailure)
 import System.Info (arch, compilerName, compilerVersion, os)
 import Text.Printf (printf)
 import qualified XMonad as X
-
-version :: String
-version = "0.1"
 
 keenwm ::
      (X.LayoutClass l X.Window, Read (l X.Window))
@@ -42,11 +40,24 @@ keenwm m conf = do
   args <- getArgs
   case args of
     ["--help"] -> printUsage
-    ["--recompile"] -> recompile Nothing >>= flip unless exitFailure
-    ["--restart"] -> sendRestart
-    ["--info"] -> printInfo
-    [] -> X.launch . m . kToX $ conf
-    a -> printUnrecognized a
+    ["-h"] -> printUsage
+    ["--version"] -> printVersion
+    ["-v"] -> printVersion
+    ["-vv"] -> printInfo
+    ["--src-dir"] -> printConfigDir
+    ["-s"] -> printConfigDir
+    ["--recompile"] -> runRecompile
+    ["-r"] -> runRecompile
+    ["--restart"] -> runRestart
+    ["-e"] -> runRestart
+    [] -> runKeenWM m conf
+    a -> do
+      putStrLn . printf "Unrecognized options: %s\n" $ unwords a
+      printUsage
+      exitFailure
+
+printVersion :: IO ()
+printVersion = putStrLn . printf "KeenWM: %s" $ showVersion version
 
 printInfo :: IO ()
 printInfo = do
@@ -56,7 +67,7 @@ printInfo = do
       "keenwm %s compiled by %s %s for %s-%s\n\
       \Xinerama: %s\n\
       \Config path: %s"
-      version
+      (showVersion version)
       compilerName
       (showVersion compilerVersion)
       arch
@@ -67,31 +78,38 @@ printInfo = do
 printUsage :: IO ()
 printUsage = do
   self <- getProgName
-  dir <- getConfigDir
   putStrLn $
     printf
-      "Usage: %s [OPTION]\n\
-      \Options:\n\
-      \  --help        Print this message\n\
-      \  --recompile   Recompile the source code at %s\n\
-      \  --restart     Restart the running instance of keenwm (Broken)\n\
-      \  --info        Print info about the binary"
+      "KeenWM %s\n\
+      \A window manager written in Haskell\n\
+      \\n\
+      \USAGE:\n\
+      \    %s [FLAGS]\n\
+      \\n\
+      \FLAGS:\n\
+      \    -h, --help        Prints help information\n\
+      \    -v, --version     Prints version information\n\
+      \    -s, --src-dir     Prints the source code path\n\
+      \    -r, --recompile   Recompiles the source code\n\
+      \    -e, --restart     Requests a running KeenWM process to restart\n"
+      (showVersion version)
       self
-      dir
 
-printUnrecognized :: [String] -> IO ()
-printUnrecognized o = do
-  self <- getProgName
-  putStrLn $
-    printf
-      "%s: unrecognized option%s -- '%s'\n\
-      \Try '%s --help' for more information."
-      self
-      (if length o == 1
-         then ""
-         else "s")
-      (unwords o)
-      self
+printConfigDir :: IO ()
+printConfigDir = putStrLn =<< getConfigDir
+
+runRecompile :: IO ()
+runRecompile = recompile Nothing >>= flip unless exitFailure
+
+runRestart :: IO ()
+runRestart = sendRestart
+
+runKeenWM ::
+     (X.LayoutClass l X.Window, Read (l X.Window))
+  => (X.XConfig l -> X.XConfig l)
+  -> KConfig l
+  -> IO ()
+runKeenWM m = X.launch . m . kToX
 
 -- | Broken. Starts xmonad instead of keenwm
 sendRestart :: IO ()
