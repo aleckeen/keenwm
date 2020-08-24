@@ -111,14 +111,13 @@ runKeenWM ::
   -> IO ()
 runKeenWM m = X.launch . m . kToX
 
--- | Broken. Starts xmonad instead of keenwm
 sendRestart :: IO ()
 sendRestart = do
   dpy <- openDisplay ""
   rw <- rootWindow dpy $ defaultScreen dpy
-  xmonad_restart <- internAtom dpy "XMONAD_RESTART" False
+  keenwm_restart <- internAtom dpy "KEENWM_RESTART" False
   allocaXEvent $ \e -> do
     setEventType e clientMessage
-    setClientMessageEvent e rw xmonad_restart 32 0 currentTime
+    setClientMessageEvent e rw keenwm_restart 32 0 currentTime
     sendEvent dpy rw False structureNotifyMask e
   sync dpy False

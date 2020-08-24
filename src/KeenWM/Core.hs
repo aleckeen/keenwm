@@ -20,7 +20,10 @@ import qualified Graphics.X11.Types as X11
 import Graphics.X11.Xinerama (getScreenInfo)
 import Graphics.X11.Xlib (closeDisplay, openDisplay, rrScreenChangeNotifyMask)
 import qualified Graphics.X11.Xlib.Cursor as X11
-import Graphics.X11.Xlib.Extras (Event(RRScreenChangeNotifyEvent))
+import Graphics.X11.Xlib.Extras
+  ( Event(ClientMessageEvent, RRScreenChangeNotifyEvent)
+  , ev_message_type
+  )
 import Graphics.X11.Xrandr (xrrSelectInput)
 import KeenWM.Bar (barLog, barStartup, cleanupBars)
 import KeenWM.Util.ColorScheme (ColorScheme(..))
@@ -42,6 +45,7 @@ import System.Process
   )
 import Text.Printf (printf)
 import qualified XMonad as X
+import XMonad (getAtom)
 import XMonad.Core (installSignalHandlers, uninstallSignalHandlers)
 import XMonad.Hooks.EwmhDesktops (ewmh, ewmhFullscreen)
 import XMonad.Hooks.ManageDocks (docks, manageDocks)
@@ -103,7 +107,7 @@ kToX kc@KConfig {colorScheme = cs} =
     manageHook' :: X.ManageHook
     manageHook' = manageDocks
     handleEventHook' :: X.Event -> X.X All
-    handleEventHook' = randrEvent
+    handleEventHook' = eventHandler
     logHook' :: X.X ()
     logHook' = barLog
     startupHook' :: X.X ()
@@ -119,11 +123,16 @@ randrSetup = do
   root <- X.asks X.theRoot
   liftIO $ xrrSelectInput dpy root rrScreenChangeNotifyMask
 
-randrEvent :: X.Event -> X.X All
-randrEvent e =
-  case e of
-    RRScreenChangeNotifyEvent {} -> restart >> return (All True)
-    _ -> return $ All True
+eventHandler :: X.Event -> X.X All
+eventHandler RRScreenChangeNotifyEvent {} = restart >> return (All False)
+eventHandler ClientMessageEvent {ev_message_type = mt} = do
+  a <- getAtom "KEENWM_RESTART"
+  if mt == a
+    then do
+      restart
+      return $ All False
+    else return $ All True
+eventHandler _ = return $ All True
 
 --------------------------------------------------------------------------------
 -- Recompilation
